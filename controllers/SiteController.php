@@ -12,9 +12,9 @@ use app\models\ContactForm;
 
 class SiteController extends Controller
 {
-    /**
-     * {@inheritdoc}
-     */
+    private const ADMIN_BASE_URL = 'order/list';
+    private const CLIENT_BASE_URL = 'order/index';
+
     public function behaviors()
     {
         return [
@@ -61,7 +61,9 @@ class SiteController extends Controller
      */
     public function actionIndex()
     {
-        return $this->render('index');
+        $url = Yii::$app->user->isGuest ? self::CLIENT_BASE_URL : self::ADMIN_BASE_URL;
+
+        return $this->redirect(Yii::$app->urlManager->createUrl($url));
     }
 
     /**
@@ -72,12 +74,12 @@ class SiteController extends Controller
     public function actionLogin()
     {
         if (!Yii::$app->user->isGuest) {
-            return $this->goHome();
+            return $this->response->redirect(Yii::$app->urlManager->createUrl(self::ADMIN_BASE_URL));
         }
 
         $model = new LoginForm();
         if ($model->load(Yii::$app->request->post()) && $model->login()) {
-            return $this->goBack();
+            return $this->response->redirect(Yii::$app->urlManager->createUrl(self::ADMIN_BASE_URL));
         }
 
         $model->password = '';

@@ -1,0 +1,9 @@
+yii.bat
+.git/
+tests/
+.dockerignore
+.bowerrc
+codeception.yml
+#**/*.php
+!**/contrib
+web/assets/*

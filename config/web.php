@@ -14,7 +14,7 @@ $config = [
     'components' => [
         'request' => [
             // !!! insert a secret key in the following (if it is empty) - this is required by cookie validation
-            'cookieValidationKey' => '',
+            'cookieValidationKey' => 'mP9PmHWE_7VkIYbD95YURIcEAx2TmeM-',
         ],
         'cache' => [
             'class' => 'yii\caching\FileCache',
@@ -42,16 +42,18 @@ $config = [
             ],
         ],
         'db' => $db,
-        /*
         'urlManager' => [
             'enablePrettyUrl' => true,
             'showScriptName' => false,
             'rules' => [
+                '<controller:\w+>/<action:\w+>/<id:\d+>' => '<controller>/<action>',
+                '<controller:\w+>/<action:\w+>' => '<controller>/<action>',
             ],
         ],
-        */
     ],
     'params' => $params,
+    'name' => 'CRM',
+    'homeUrl' => '/order/index',
 ];
 
 if (YII_ENV_DEV) {

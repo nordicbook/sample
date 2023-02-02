@@ -2,52 +2,64 @@
 
 namespace app\models;
 
-class User extends \yii\base\BaseObject implements \yii\web\IdentityInterface
-{
-    public $id;
-    public $username;
-    public $password;
-    public $authKey;
-    public $accessToken;
+use yii\db\ActiveRecord;
+use yii\web\IdentityInterface;
 
-    private static $users = [
-        '100' => [
-            'id' => '100',
-            'username' => 'admin',
-            'password' => 'admin',
-            'authKey' => 'test100key',
-            'accessToken' => '100-token',
-        ],
-        '101' => [
-            'id' => '101',
-            'username' => 'demo',
-            'password' => 'demo',
-            'authKey' => 'test101key',
-            'accessToken' => '101-token',
-        ],
+/**
+ * @property int $id
+ * @property string $accessToken
+ * @property string $email
+ * @property string $username
+ * @property string $password
+ * @property string|null $first_name
+ * @property string|null $last_name
+ * @property int $role
+ * @property int $status
+ * @property string $created_at
+ * @property string $updated_at
+ */
+class User extends ActiveRecord implements IdentityInterface
+{
+    public const ROLE_ADMIN = 1;
+    public const ROLE_MANAGER = 2;
+
+    public const ROLE_NAMES = [
+        self::ROLE_ADMIN => 'admin',
+        self::ROLE_MANAGER => 'manager',
     ];
 
+    public const STATUS_ACTIVE = 1;
+    public const STATUS_DELETED = 2;
 
-    /**
-     * {@inheritdoc}
-     */
-    public static function findIdentity($id)
+    public const STATUS_NAMES = [
+        self::STATUS_ACTIVE => 'active',
+        self::STATUS_DELETED => 'deleted',
+    ];
+
+    public static function tableName(): string
     {
-        return isset(self::$users[$id]) ? new static(self::$users[$id]) : null;
+        return 'public.users';
     }
 
-    /**
-     * {@inheritdoc}
-     */
-    public static function findIdentityByAccessToken($token, $type = null)
+    public function rules(): array
     {
-        foreach (self::$users as $user) {
-            if ($user['accessToken'] === $token) {
-                return new static($user);
-            }
-        }
+        return [
+            [['accessToken', 'username', 'email'], 'required'],
+            [['accessToken', 'role', 'status', 'first_name', 'last_name'], 'default', 'value' => null],
+            [['role', 'status'], 'integer'],
+            [['accessToken', 'email', 'first_name', 'last_name', 'email', 'username'], 'string'],
+            [['created_at', 'updated_at', 'password'], 'safe'],
+        ];
+    }
 
-        return null;
+    public static function findIdentity($id): ?static
+    {
+        return static::findOne($id);
+    }
+
+    public static function findIdentityByAccessToken($token, $type = null): ?static
+    {
+        return static::findOne(['accessToken' => $token]);
     }
 
     /**
@@ -56,15 +68,9 @@ class User extends \yii\base\BaseObject implements \yii\web\IdentityInterface
      * @param string $username
      * @return static|null
      */
-    public static function findByUsername($username)
+    public static function findByUsername($username): ?static
     {
-        foreach (self::$users as $user) {
-            if (strcasecmp($user['username'], $username) === 0) {
-                return new static($user);
-            }
-        }
-
-        return null;
+        return static::findOne(['username' => $username]);
     }
 
     /**
@@ -80,7 +86,7 @@ class User extends \yii\base\BaseObject implements \yii\web\IdentityInterface
      */
     public function getAuthKey()
     {
-        return $this->authKey;
+        return $this->username;
     }
 
     /**
@@ -88,7 +94,7 @@ class User extends \yii\base\BaseObject implements \yii\web\IdentityInterface
      */
     public function validateAuthKey($authKey)
     {
-        return $this->authKey === $authKey;
+        return $this->username === $authKey;
     }
 
     /**
@@ -100,5 +106,15 @@ class User extends \yii\base\BaseObject implements \yii\web\IdentityInterface
     public function validatePassword($password)
     {
         return $this->password === $password;
+    }
+
+    public function isAdmin(): bool
+    {
+        return self::ROLE_ADMIN === $this->role;
+    }
+
+    public function isManager(): bool
+    {
+        return self::ROLE_MANAGER === $this->role;
     }
 }
